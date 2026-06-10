@@ -1,6 +1,7 @@
-import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2,  Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
+import Link from "next/link";
 
 
 export default function Hero() {
@@ -49,21 +50,26 @@ export default function Hero() {
 
           {/* CTA */}
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link href="/upload" className="w-full sm:w-auto">
             <Button
               size="lg"
               className="h-12 rounded-2xl px-8 text-base shadow-lg shadow-primary/20"
             >
-              Start Free
+              Try Minutely
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+            </Link>
 
+          <Link href="/demo" className="w-full sm:w-auto">
             <Button
               variant="outline"
               size="lg"
               className="h-12 rounded-2xl px-8 text-base backdrop-blur"
             >
-              Watch Demo
+              Live Demo
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+          </Link>
           </div>
 
           {/* Social proof */}

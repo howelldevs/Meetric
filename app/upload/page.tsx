@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import UploadZone from "@/components/upload/upload-zone"
 import ProcessingScreen from "@/components/upload/processing-screen"
 import ResultsDashboard from "@/components/results/results-dashboard"
@@ -13,6 +14,7 @@ type Step = "upload" | "processing" | "results"
 
 export default function UploadPage() {
   const { user } = useUser()
+  const router = useRouter()
   const [step, setStep] = useState<Step>("upload")
   const [transcript, setTranscript] = useState("")
   const [analysis, setAnalysis] = useState<MeetingAnalysis | null>(null)
@@ -23,7 +25,14 @@ export default function UploadPage() {
   }
 
   const handleProcessingComplete = async (data: MeetingAnalysis) => {
-    await saveAnalysis(data, user?.id)
+    if (user?.id) {
+      const id = await saveAnalysis(data, user.id)
+      if (id) {
+        router.push(`/results/${id}`)
+        return
+      }
+    }
+    // Not logged in — show results in-session only
     setAnalysis(data)
     setStep("results")
   }
@@ -32,36 +41,32 @@ export default function UploadPage() {
     <main className="relative min-h-screen overflow-hidden">
       <div className="bg-grid absolute inset-0 opacity-40" />
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-1/2 top-0 h-125 w-125 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
       </div>
-      <div className="relative z-10 container pt-10">
-        <Navbar />
-      </div>
-      <div className="container relative py-24">
+
+      <Navbar />
+
+      <div className="container relative pt-32 pb-20">
         {step === "upload" && (
-          <div className="mx-auto max-w-4xl">
-            <div className="text-center">
-              <div className="mb-4 inline-flex rounded-full border bg-background/70 px-4 py-2 text-sm backdrop-blur">
-                Powered by Qwen AI
-              </div>
-              <h1 className="text-5xl font-semibold tracking-tight md:text-6xl">
-                Upload your meeting
+          <div className="mx-auto max-w-2xl">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Analyze a meeting
               </h1>
-              <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
-                Paste transcripts or upload voice notes and let Minutely
-                generate structured action plans instantly.
+              <p className="mt-2 text-sm text-muted-foreground">
+                Drop a transcript file or paste the text below
               </p>
             </div>
-            <div className="mt-14">
-              <UploadZone onAnalyze={handleAnalyze} />
-            </div>
+            <UploadZone onAnalyze={handleAnalyze} />
           </div>
         )}
+
         {step === "processing" && (
-          <div className="mx-auto max-w-4xl">
+          <div className="mx-auto max-w-lg">
             <ProcessingScreen transcript={transcript} onComplete={handleProcessingComplete} />
           </div>
         )}
+
         {step === "results" && analysis && (
           <ResultsDashboard analysis={analysis} />
         )}

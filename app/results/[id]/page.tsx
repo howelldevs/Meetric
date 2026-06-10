@@ -1,0 +1,49 @@
+import { notFound, redirect } from "next/navigation"
+import { auth } from "@clerk/nextjs/server"
+import { adminSupabase } from "@/lib/supabase/admin"
+import Navbar from "@/components/layout/Navbar"
+import ResultsDashboard from "@/components/results/results-dashboard"
+import type { MeetingAnalysis } from "@/types/analysis"
+
+interface Props {
+  params: Promise<{ id: string }>
+}
+
+export default async function ResultsPage({ params }: Props) {
+  const { id } = await params
+  const { userId } = await auth()
+
+  if (!userId) redirect("/upload")
+
+  const { data, error } = await adminSupabase
+    .from("meetings")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .single()
+
+  if (error || !data) notFound()
+
+  const analysis: MeetingAnalysis = {
+    title: data.title,
+    summary: data.summary,
+    processingTime: data.processing_time,
+    actionItems: data.action_items ?? [],
+    decisions: data.decisions ?? [],
+    participants: data.participants ?? [],
+    transcript: data.transcript ?? "",
+  }
+
+  return (
+    <main className="relative min-h-screen overflow-hidden pb-20">
+      <div className="bg-grid absolute inset-0 opacity-40" />
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+      </div>
+      <Navbar />
+      <div className="pt-24">
+        <ResultsDashboard analysis={analysis} />
+      </div>
+    </main>
+  )
+}

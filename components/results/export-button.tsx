@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Download, Copy, Check, ChevronDown } from "lucide-react"
+import { Download, Copy, Check, ChevronDown, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { MeetingAnalysis } from "@/types/analysis"
-import { downloadMarkdown, toMarkdown, copyToClipboard, toNotionClipboard } from "@/lib/export"
+import { downloadMarkdown, downloadPDF, toMarkdown, copyToClipboard, toNotionClipboard } from "@/lib/export"
 
 interface Props {
   analysis: MeetingAnalysis
@@ -38,6 +38,15 @@ export default function ExportButton({ analysis }: Props) {
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-12 z-20 w-52 rounded-2xl border bg-card/95 p-2 shadow-xl backdrop-blur">
+
+            <button
+              onClick={() => { downloadPDF(analysis); setOpen(false) }}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm hover:bg-primary/10 transition-colors"
+            >
+              <FileText className="h-4 w-4 text-primary" />
+              Download PDF
+            </button>
+
             <button
               onClick={() => { downloadMarkdown(analysis); setOpen(false) }}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm hover:bg-primary/10 transition-colors"

@@ -60,18 +60,16 @@ function fromRow(row: MeetingRow): HistoryEntry {
 export async function saveAnalysis(
   analysis: MeetingAnalysis,
   userId?: string
-): Promise<void> {
+): Promise<string | null> {
+  if (!userId) return null // anonymous — don't save
+
   const supabase = createClient()
   const deviceId = getDeviceId()
 
-  const payload = toRow(analysis, deviceId, userId)
-
-  console.log("Saving payload:", payload)
-
   const { data, error } = await supabase
     .from("meetings")
-    .insert(payload)
-    .select()
+    .insert(toRow(analysis, deviceId, userId))
+    .select("id")
     .single()
 
   if (error) {
@@ -81,11 +79,10 @@ export async function saveAnalysis(
       hint: error.hint,
       code: error.code,
     })
-
-    return
+    return null
   }
 
-  console.log("Saved:", data)
+  return data.id
 }
 
 export async function getHistory(

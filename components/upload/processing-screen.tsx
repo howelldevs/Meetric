@@ -1,30 +1,30 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { motion } from "framer-motion"
+import { useEffect, useRef, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { BrainCircuit, CheckCircle2, Clock3, Sparkles, Users } from "lucide-react"
 import type { MeetingAnalysis } from "@/types/analysis"
 
 const steps = [
   {
     icon: BrainCircuit,
-    title: "Analyzing transcript context",
-    description: "Qwen AI is understanding the meeting discussion",
+    title: "Reading transcript",
+    description: "Understanding context and structure",
   },
   {
     icon: Users,
-    title: "Identifying participants",
-    description: "Detecting speakers and responsibilities",
+    title: "Identifying speakers",
+    description: "Mapping participants and roles",
   },
   {
     icon: CheckCircle2,
-    title: "Extracting action items",
-    description: "Finding commitments, tasks, and deadlines",
+    title: "Extracting tasks",
+    description: "Finding commitments and deadlines",
   },
   {
     icon: Clock3,
-    title: "Generating structured output",
-    description: "Creating summaries and action boards",
+    title: "Building output",
+    description: "Structuring summaries and decisions",
   },
 ]
 
@@ -35,7 +35,23 @@ interface Props {
 
 export default function ProcessingScreen({ transcript, onComplete }: Props) {
   const hasFired = useRef(false)
+  const [activeStep, setActiveStep] = useState(0)
+  const [elapsed, setElapsed] = useState(0)
 
+  // Tick elapsed time
+  useEffect(() => {
+    const timer = setInterval(() => setElapsed((e) => e + 1), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  // Advance steps visually every ~1.2s
+  useEffect(() => {
+    if (activeStep >= steps.length - 1) return
+    const t = setTimeout(() => setActiveStep((s) => s + 1), 1200)
+    return () => clearTimeout(t)
+  }, [activeStep])
+
+  // Fire API once
   useEffect(() => {
     if (hasFired.current) return
     hasFired.current = true
@@ -50,11 +66,11 @@ export default function ProcessingScreen({ transcript, onComplete }: Props) {
           body: JSON.stringify({ transcript }),
         })
 
-      if (!res.ok) {
-      const detail = await res.json()
-      console.error("API route failed:", detail)
-      throw new Error("API route failed")
-    }
+        if (!res.ok) {
+          const detail = await res.json()
+          console.error("API route failed:", detail)
+          throw new Error("API route failed")
+        }
 
         const data: MeetingAnalysis = await res.json()
         onComplete(data)
@@ -68,52 +84,92 @@ export default function ProcessingScreen({ transcript, onComplete }: Props) {
   }, [transcript, onComplete])
 
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border bg-card/70 p-8 shadow-2xl backdrop-blur-xl">
-      <div className="absolute inset-0 -z-10 bg-primary/5 blur-3xl" />
+    <div className="mx-auto max-w-lg">
 
-      <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-          <Sparkles className="h-6 w-6 text-primary" />
+      {/* Header */}
+      <div className="mb-10 text-center">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border bg-card/80 shadow-lg backdrop-blur">
+          <Sparkles className="h-7 w-7 text-primary" />
         </div>
-        <div>
-          <h2 className="text-2xl font-semibold">Processing Meeting</h2>
-          <p className="text-muted-foreground">Powered by Qwen AI</p>
-        </div>
+        <h2 className="text-2xl font-semibold tracking-tight">Analyzing your meeting</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          This usually takes under 10 seconds
+        </p>
       </div>
 
-      <div className="mt-10 space-y-5">
-        {steps.map((step, index) => (
-          <motion.div
-            key={step.title}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.4, duration: 0.5 }}
-            className="flex items-start gap-4 rounded-2xl border bg-background/60 p-5 backdrop-blur"
-          >
-            <div className="relative mt-1">
-              <div className="absolute inset-0 animate-ping rounded-full bg-primary/30" />
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                <step.icon className="h-5 w-5 text-primary" />
+      {/* Steps */}
+      <div className="space-y-3">
+        {steps.map((step, index) => {
+          const isDone = index < activeStep
+          const isActive = index === activeStep
+          const isPending = index > activeStep
+
+          return (
+            <motion.div
+              key={step.title}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: isPending ? 0.4 : 1, x: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              className={`flex items-center gap-4 rounded-2xl border p-4 transition-colors duration-500 ${
+                isActive
+                  ? "border-primary/30 bg-primary/5"
+                  : isDone
+                  ? "bg-card/40"
+                  : "bg-card/20"
+              }`}
+            >
+              {/* Icon */}
+              <div className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors duration-500 ${
+                isDone ? "bg-primary/15" : isActive ? "bg-primary/10" : "bg-muted/50"
+              }`}>
+                {isDone ? (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                  </motion.div>
+                ) : (
+                  <step.icon className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                )}
+
+                {/* Active ping */}
+                {isActive && (
+                  <span className="absolute inset-0 animate-ping rounded-xl bg-primary/20" />
+                )}
               </div>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h3 className="font-medium">{step.title}</h3>
-                <div className="flex gap-1">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:0.2s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:0.4s]" />
-                </div>
+
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium ${isPending ? "text-muted-foreground" : "text-foreground"}`}>
+                  {step.title}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{step.description}</p>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
-            </div>
-          </motion.div>
-        ))}
+
+              {/* State indicator */}
+              <div className="shrink-0">
+                {isDone && (
+                  <span className="text-xs text-primary">Done</span>
+                )}
+                {isActive && (
+                  <div className="flex gap-0.5">
+                    <span className="h-1 w-1 animate-bounce rounded-full bg-primary" />
+                    <span className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:0.15s]" />
+                    <span className="h-1 w-1 animate-bounce rounded-full bg-primary [animation-delay:0.3s]" />
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )
+        })}
       </div>
 
-      <div className="mt-10 rounded-2xl border bg-background/60 p-5 text-sm text-muted-foreground">
-        Minutely is extracting summaries, action items, decisions, priorities,
-        and participant insights in real-time.
+      {/* Footer */}
+      <div className="mt-8 flex items-center justify-between text-xs text-muted-foreground">
+        <span>Powered by Qwen AI</span>
+        <span className="tabular-nums">{elapsed}s elapsed</span>
       </div>
     </div>
   )
