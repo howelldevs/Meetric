@@ -142,7 +142,7 @@ export default function ResultsDashboard({ analysis: initial, meetingId }: Props
               </div>
             )}
 
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary uppercase leading-tight break-words">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary uppercase leading-tight wrap-break-word">
               {title}
             </h1>
 
@@ -266,7 +266,7 @@ export default function ResultsDashboard({ analysis: initial, meetingId }: Props
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <ExportButton analysis={analysis} />
               <Link
-                href="/integrations"
+                href={meetingId ? `/integrations?returnTo=${encodeURIComponent(`/results/${meetingId}`)}` : "/integrations"}
                 className="flex items-center gap-2 rounded-2xl border bg-card/50 px-3 sm:px-5 py-2.5 text-xs sm:text-sm backdrop-blur transition-all hover:bg-card whitespace-nowrap"
               >
                 <Sparkles className="h-3.5 w-3.5 shrink-0" />

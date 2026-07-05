@@ -14,10 +14,7 @@ import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { FaGoogle, FaN, FaSlack } from "react-icons/fa6";
 
-import { FileText, MessageSquare, Mail,
-  CheckCircle2, XCircle, Loader2, ExternalLink, Link2Off,
-  ArrowLeftCircle,
-} from "lucide-react"
+import { Mail, CheckCircle2, XCircle, Loader2, ExternalLink, Link2Off, ArrowLeftCircle } from "lucide-react"
 import Navbar from "@/components/layout/Navbar"
 import Link from "next/link"
 
@@ -65,7 +62,7 @@ function IntegrationHeader({
         <div className={`rounded-2xl p-2.5 shrink-0 ${iconBg}`}>{icon}</div>
         <div className="min-w-0">
           <h2 className="font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground break-words">{description}</p>
+          <p className="text-sm text-muted-foreground wrap-break-word">{description}</p>
         </div>
       </div>
       <StatusBadge connected={connected} />
@@ -88,6 +85,8 @@ function IntegrationsContent() {
 
   const connected = searchParams.get("connected")
   const error     = searchParams.get("error")
+  const returnTo  = searchParams.get("returnTo")
+  const backHref  = returnTo && returnTo.startsWith("/results/") ? returnTo : "/results"
 
   useEffect(() => {
     fetch("/api/integrations/status")
@@ -150,7 +149,7 @@ function IntegrationsContent() {
           A real href always works.
         */}
         <Link
-          href="/results"
+          href={backHref}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeftCircle className="h-5 w-5" /> Back to Results
@@ -162,13 +161,13 @@ function IntegrationsContent() {
       </div>
 
       {connected && (
-        <div className="rounded-2xl bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm text-green-400 break-words">
+        <div className="rounded-2xl bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm text-green-400 wrap-break-word">
           ✓ {connected === "google" ? "Google Calendar" : connected} connected successfully.
         </div>
       )}
 
       {error && (
-        <div className="rounded-2xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 break-words">
+        <div className="rounded-2xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 wrap-break-word">
           Connection failed: {error.replace(/_/g, " ")}. Please try again.
         </div>
       )}
@@ -199,7 +198,7 @@ function IntegrationsContent() {
           </a>
         )}
 
-        <p className="text-xs text-muted-foreground break-words">
+        <p className="text-xs text-muted-foreground wrap-break-word">
           Requires <code className="break-all">GOOGLE_CLIENT_ID</code> and{" "}
           <code className="break-all">GOOGLE_CLIENT_SECRET</code> in your environment.{" "}
           <a
@@ -259,7 +258,7 @@ function IntegrationsContent() {
                 className="w-full rounded-2xl border bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
-            {notionError && <p className="text-xs text-red-400 break-words">{notionError}</p>}
+            {notionError && <p className="text-xs text-red-400 wrap-break-word">{notionError}</p>}
             {notionSuccess && <p className="text-xs text-green-400">✓ Notion connected!</p>}
             <button
               onClick={handleNotionSave}
@@ -272,7 +271,7 @@ function IntegrationsContent() {
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground break-words">
+        <p className="text-xs text-muted-foreground wrap-break-word">
           Create an integration at{" "}
           <a
             href="https://www.notion.so/my-integrations"
@@ -295,7 +294,7 @@ function IntegrationsContent() {
           description="Post blocker alerts to your team channels"
           connected={status?.slack ?? false}
         />
-        <p className="text-xs text-muted-foreground break-words">
+        <p className="text-xs text-muted-foreground wrap-break-word">
           Configured via <code className="break-all">SLACK_WEBHOOK_URL</code> in your environment
           (app-level, not per-user).{" "}
           <a
@@ -318,7 +317,7 @@ function IntegrationsContent() {
           description="Send follow-up emails via Resend (no per-user setup needed)"
           connected={status?.resend ?? false}
         />
-        <p className="text-xs text-muted-foreground break-words">
+        <p className="text-xs text-muted-foreground wrap-break-word">
           Configured via <code className="break-all">RESEND_API_KEY</code> and{" "}
           <code className="break-all">EMAIL_FROM</code> in your environment. Verify your sending domain
           at{" "}
